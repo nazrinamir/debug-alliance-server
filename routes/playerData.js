@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { validateToken } = require("../middleware/AuthMiddleware");
 const { PLAYERS_FILE, readXlsxFile, writeXlsxFile } = require("../utils/xlsxUtils");
 
 // Get all players with filtering
-router.get("/", validateToken, (req, res) => {
+router.get("/", (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     let filteredPlayers = players.filter(p => !p.deletedAt);
@@ -65,7 +64,7 @@ router.get("/", validateToken, (req, res) => {
 });
 
 // Get player by ID (excluding soft deleted)
-router.get("/:id", validateToken, (req, res) => {
+router.get("/:id", (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const player = players.find(p => p.id === parseInt(req.params.id) && !p.deletedAt);
@@ -80,7 +79,7 @@ router.get("/:id", validateToken, (req, res) => {
 });
 
 // Create new player
-router.post("/", validateToken, (req, res) => {
+router.post("/", (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const newId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
@@ -103,7 +102,7 @@ router.post("/", validateToken, (req, res) => {
 });
 
 // Update player
-router.put("/:id", validateToken, (req, res) => {
+router.put("/:id", (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const index = players.findIndex(p => p.id === parseInt(req.params.id) && !p.deletedAt);
@@ -126,7 +125,7 @@ router.put("/:id", validateToken, (req, res) => {
 });
 
 // Soft delete player
-router.delete("/:id", validateToken, (req, res) => {
+router.delete("/:id", (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const index = players.findIndex(p => p.id === parseInt(req.params.id) && !p.deletedAt);

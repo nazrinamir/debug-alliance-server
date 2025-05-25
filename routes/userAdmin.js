@@ -6,7 +6,7 @@ const { validateToken } = require("../middleware/AuthMiddleware");
 const { USERS_FILE, readXlsxFile, writeXlsxFile } = require("../utils/xlsxUtils");
 
 // Get all users
-router.get("/", validateToken, (req, res) => {
+router.get("/", (req, res) => {
   try {
     const users = readXlsxFile(USERS_FILE);
     // Remove password from response
