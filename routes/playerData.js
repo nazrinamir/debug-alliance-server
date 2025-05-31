@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { PLAYERS_FILE, readXlsxFile, writeXlsxFile } = require("../utils/xlsxUtils");
+const { upload } = require("../utils/uploadUtils");
 
 // Get all players with filtering
 router.get("/", (req, res) => {
@@ -79,7 +80,7 @@ router.get("/:id", (req, res) => {
 });
 
 // Create new player
-router.post("/", (req, res) => {
+router.post("/", upload.single('image'), (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const newId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
@@ -87,6 +88,8 @@ router.post("/", (req, res) => {
     const newPlayer = {
       id: newId,
       ...req.body,
+      // If an image was uploaded, store its path
+      src: req.file ? `/storage/players/${req.file.filename}` : null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       deletedAt: null
@@ -97,12 +100,13 @@ router.post("/", (req, res) => {
     
     res.json(newPlayer);
   } catch (error) {
+    console.error("Error creating player:", error);
     res.status(500).json({ error: "Failed to create player" });
   }
 });
 
 // Update player
-router.put("/:id", (req, res) => {
+router.put("/:id", upload.single('image'), (req, res) => {
   try {
     const players = readXlsxFile(PLAYERS_FILE);
     const index = players.findIndex(p => p.id === parseInt(req.params.id) && !p.deletedAt);
@@ -114,6 +118,8 @@ router.put("/:id", (req, res) => {
     players[index] = { 
       ...players[index], 
       ...req.body,
+      // Update image path if new image was uploaded
+      ...(req.file && { src: `/storage/players/${req.file.filename}` }),
       updatedAt: new Date().toISOString()
     };
     writeXlsxFile(PLAYERS_FILE, players);

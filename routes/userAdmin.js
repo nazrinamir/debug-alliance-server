@@ -181,4 +181,28 @@ router.get("/auth", validateToken, (req, res) => {
   }
 });
 
+// Verify token route
+router.get("/verify-token", validateToken, (req, res) => {
+  try {
+    const tokenTimestamp = new Date(req.user.timestamp);
+    const currentTime = new Date();
+    const timeDiff = (currentTime - tokenTimestamp) / (1000 * 60 * 60); // difference in hours
+
+    res.json({
+      valid: true,
+      user: {
+        username: req.user.username,
+        id: req.user.id,
+        isAdmin: req.user.isAdmin
+      },
+      tokenAge: `${Math.round(timeDiff * 100) / 100} hours`
+    });
+  } catch (error) {
+    res.status(401).json({ 
+      valid: false,
+      error: "Invalid token" 
+    });
+  }
+});
+
 module.exports = router;

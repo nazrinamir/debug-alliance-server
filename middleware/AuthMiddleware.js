@@ -1,18 +1,16 @@
 const { verify } = require("jsonwebtoken");
 
 const validateToken = (req, res, next) => {
-  const accessToken = req.header("accessToken");
+  const authHeader = req.header("Authorization");
 
-  if (!accessToken) {
-    return res.status(401).json({ error: "User not logged in!" });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "No token provided!" });
   }
 
   try {
-    // Remove unnecessary logging
-    // console.log("Token:", res.accessToken);
-    // console.log("Username and Password:", this.username, this.password);
-
-    const validToken = verify(accessToken, "importantsecret");
+    // Extract the token from "Bearer <token>"
+    const token = authHeader.split(' ')[1];
+    const validToken = verify(token, "importantsecret");
     
     // Check token expiration
     const tokenTimestamp = new Date(validToken.timestamp);
@@ -23,8 +21,8 @@ const validateToken = (req, res, next) => {
       return res.status(401).json({ error: "Token expired" });
     }
 
-    req.user = validToken; // Attach the decoded token to the request object
-    next(); // Proceed to the next middleware or route handler
+    req.user = validToken;
+    next();
   } catch (error) {
     console.error("Error in token validation:", error);
     return res.status(401).json({ error: "Invalid token" });
